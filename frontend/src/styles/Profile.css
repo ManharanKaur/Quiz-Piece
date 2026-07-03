@@ -1,0 +1,163 @@
+.profile-page {
+  min-height: 100vh;
+  padding: 72px 20px;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  background-color: #f5f7ff;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 620px;
+  padding: 36px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+
+  background-color: #ffffff;
+  box-shadow: 0 16px 40px rgba(49, 46, 129, 0.08);
+}
+
+.profile-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-header h1 {
+  margin: 0;
+  color: #312e81;
+  font-size: 32px;
+}
+
+.back-link {
+  position: absolute;
+  left: 0;
+
+  color: #4f46e5;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.profile-avatar {
+  width: 92px;
+  height: 92px;
+  margin: 32px auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+  background-color: #4f46e5;
+
+  font-size: 38px;
+  font-weight: 700;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-field {
+  padding: 16px 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background-color: #fafaff;
+}
+
+.profile-label {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-value {
+  color: #111827;
+  font-size: 17px;
+}
+
+.danger-zone {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.danger-zone h2 {
+  margin: 0 0 8px;
+  color: #b91c1c;
+  font-size: 20px;
+}
+
+.danger-zone p {
+  margin: 0 0 18px;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.delete-account-button {
+  padding: 11px 18px;
+
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+
+  color: #ffffff;
+  background-color: #dc2626;
+
+  font-weight: 600;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.delete-account-button:hover {
+  border-color: #b91c1c;
+  background-color: #b91c1c;
+}
+
+.profile-message {
+  margin-top: 16px !important;
+  color: #4f46e5 !important;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 32px 16px;
+  }
+
+  .profile-card {
+    padding: 24px 20px;
+  }
+
+  .profile-header {
+    padding-top: 40px;
+  }
+
+  .back-link {
+    top: 0;
+  }
+
+  .profile-header h1 {
+    font-size: 28px;
+  }
+}

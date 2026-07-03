@@ -1,0 +1,41 @@
+/* Makes width and height calculations more predictable for every element. */
+* {
+  box-sizing: border-box;
+}
+
+/* Removes the browser's default page spacing. */
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  background-color: #f5f7ff;
+  color: #1f2937;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Used for features that should not appear yet. */
+.hidden {
+  display: none;
+}
