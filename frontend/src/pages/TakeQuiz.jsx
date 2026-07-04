@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import QuizCard from "../components/QuizCard";
 import "../styles/TakeQuiz.css";
 
-// This uses your deployed backend if SERVER_URL exists.
+// This uses your deployed backend if API_BASE_URL exists.
 // Otherwise it uses your local backend.
-const API_URL = import.meta.env.SERVER_URL || "http://localhost:5000";
+const API_URL = import.meta.env.API_BASE_URL || "http://localhost:5000";
 
 // These are only UI options.
 // Questions are NOT stored here.
