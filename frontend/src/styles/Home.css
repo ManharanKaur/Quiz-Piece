@@ -35,18 +35,18 @@
 .home-content {
   min-height: 100vh;
   padding: 24px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   text-align: center;
 }
 
 .home-content h1 {
   margin: 0 0 12px;
-  font-size: 48px;
+  font-size: 300px;
+  font-weight: 700;
+  line-height: 0.8;
   color: #312e81;
 }
 
@@ -61,7 +61,11 @@
   gap: 16px;
 }
 
-.home-actions button {
+.home-actions button,
+.home-actions-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 24px;
   border: none;
   border-radius: 8px;
@@ -71,13 +75,17 @@
 
   font-size: 16px;
   font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
 
   transition:
     background-color 0.2s ease,
     transform 0.2s ease;
 }
 
-.home-actions button:hover {
+.home-actions button:hover,
+.home-actions-link:hover {
   background-color: #3730a3;
   transform: translateY(-2px);
 }
@@ -98,7 +106,85 @@
     flex-direction: column;
   }
 
-  .home-actions button {
+  .home-actions button,
+  .home-actions-link {
     width: 100%;
   }
+}
+
+/* src/styles/Home.css */
+
+.home {
+  min-height: 100vh;
+  background: #111;
+  color: #fff3d8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Impact", sans-serif;
+  overflow: hidden;
+}
+
+.hero {
+  text-align: center;
+  max-width: 850px;
+  padding: 40px 20px;
+}
+
+.hero-title {
+  font-size: clamp(70px, 12vw, 160px);
+  line-height: 0.9;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.q-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.straw-hat {
+  position: absolute;
+  width: 1.1em;
+  top: -0.28em;
+  left: -0.18em;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.hero-text {
+  font-family: Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 35px auto 45px;
+  color: #e8dcc2;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.hero-buttons button {
+  font-family: "Impact", sans-serif;
+  font-size: 26px;
+  padding: 18px 44px;
+  background: transparent;
+  color: #fff3d8;
+  border: 1px solid #fff3d8;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.primary-btn {
+  border-color: #ffd400 !important;
+  color: #ffd400 !important;
+}
+
+.hero-buttons button:hover {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.06);
 }

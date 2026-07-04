@@ -4,7 +4,6 @@ import "../styles/Home.css";
 function Home() {
   return (
     <main className="home-page">
-      {/* Link changes the React page without refreshing the browser. */}
       <Link to="/profile" className="profile-link" aria-label="Open profile">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -29,12 +28,13 @@ function Home() {
         <p>Welcome to your quiz platform.</p>
 
         <div className="home-actions">
-          {/* Create Quiz is hidden until that section is developed. */}
           <button className="hidden" type="button">
             Create Quiz
           </button>
 
-          <button type="button">Take Quiz</button>
+          <Link to="/take-quiz" className="home-actions-link">
+            Take Quiz
+          </Link>
         </div>
       </section>
     </main>

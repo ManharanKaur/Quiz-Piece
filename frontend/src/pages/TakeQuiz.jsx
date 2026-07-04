@@ -1,251 +1,616 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import QuizCard from "../components/QuizCard";
 import "../styles/TakeQuiz.css";
 
-// Reads the backend URL from the Vite environment file.
-// Example value:
-// VITE_API_URL=http://localhost:5000
+// This uses your deployed backend if VITE_API_URL exists.
+// Otherwise it uses your local backend.
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+// These are only UI options.
+// Questions are NOT stored here.
+// Actual questions will come from MongoDB through backend.
+const FALLBACK_QUIZ_OPTIONS = [
+  {
+    id: "gk-5",
+    questionCount: 5,
+    title: "5 Questions",
+    description: "Quick GK practice quiz.",
+  },
+  {
+    id: "gk-10",
+    questionCount: 10,
+    title: "10 Questions",
+    description: "Balanced GK practice quiz.",
+  },
+  {
+    id: "gk-15",
+    questionCount: 15,
+    title: "15 Questions",
+    description: "Medium length GK quiz.",
+  },
+  {
+    id: "gk-20",
+    questionCount: 20,
+    title: "20 Questions",
+    description: "Full GK practice round.",
+  },
+];
+
 function TakeQuiz() {
-  // Current visible screen:
-  // selection -> choose quiz length
-  // quiz      -> answer questions
-  // result    -> show score and correct answers
+  const [pageMode, setPageMode] = useState("menu");
   const [quizStage, setQuizStage] = useState("selection");
 
-  // Quiz-length choices received from the backend.
-  const [quizOptions, setQuizOptions] = useState([]);
+  const [quizCode, setQuizCode] = useState("");
+  const [quizOptions, setQuizOptions] = useState(FALLBACK_QUIZ_OPTIONS);
 
-  // Unique backend-created quiz attempt.
   const [attemptId, setAttemptId] = useState(null);
-
-  // Questions received from the backend.
-  // Correct answers are not included here.
   const [quizQuestions, setQuizQuestions] = useState([]);
-
   const [selectedQuestionCount, setSelectedQuestionCount] = useState(null);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-
-  // Answers are stored as:
-  // {
-  //   questionId: optionId
-  // }
   const [selectedAnswers, setSelectedAnswers] = useState({});
-
-  // Final result returned by the backend.
   const [quizResult, setQuizResult] = useState(null);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [isStartingQuiz, setIsStartingQuiz] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [error, setError] = useState("");
 
-  /**
-   * Fetch available quiz-length options when the page loads.
-   * Because these options come from the backend, adding a new
-   * 25-question quiz will not require changing this component.
-   */
   useEffect(() => {
     const fetchQuizOptions = async () => {
       try {
-        setIsLoading(true);
-        setError("");
+        setIsLoadingOptions(true);
 
         const response = await fetch(`${API_URL}/api/quiz-options`);
 
         if (!response.ok) {
-          throw new Error("Unable to load quiz options.");
+          throw new Error("Quiz options route not found.");
         }
 
         const data = await response.json();
 
-        setQuizOptions(data.options || []);
+        if (Array.isArray(data.options) && data.options.length > 0) {
+          setQuizOptions(data.options);
+        }
       } catch (requestError) {
-        setError(requestError.message);
+        // This fallback is okay because these are only quiz length cards.
+        // Actual questions are still fetched from backend only.
+        console.warn("Using fallback quiz options:", requestError.message);
+        setQuizOptions(FALLBACK_QUIZ_OPTIONS);
       } finally {
-        setIsLoading(false);
+        setIsLoadingOptions(false);
       }
     };
 
     fetchQuizOptions();
   }, []);
 
-  /**
-   * Creates a new quiz attempt on the backend.
-   *
-   * @param {number} questionCount
-   * Number of questions selected by the user.
-   */
-  const startQuiz = async (questionCount) => {
-    try {
-      setIsLoading(true);
-      setError("");
+  const currentQuestion = quizQuestions[currentQuestionIndex];
 
+  const answeredQuestionCount = useMemo(() => {
+    return Object.keys(selectedAnswers).length;
+  }, [selectedAnswers]);
+
+  const unansweredQuestionCount = quizQuestions.length - answeredQuestionCount;
+
+  const resetQuizState = () => {
+    setAttemptId(null);
+    setQuizQuestions([]);
+    setSelectedQuestionCount(null);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setQuizResult(null);
+    setError("");
+    setQuizStage("selection");
+  };
+
+  const goBackToMainMenu = () => {
+    resetQuizState();
+    setPageMode("menu");
+    setQuizCode("");
+  };
+
+  const goToGKSelection = () => {
+    resetQuizState();
+    setPageMode("gk");
+  };
+
+  const goToCodeSelection = () => {
+    resetQuizState();
+    setPageMode("code");
+  };
+
+  const extractQuestionsFromResponse = (data) => {
+    // This supports multiple possible backend response formats:
+    // 1. { questions: [...] }
+    // 2. { data: [...] }
+    // 3. { quiz: { questions: [...] } }
+    // 4. Direct array [...]
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.questions)) return data.questions;
+    if (Array.isArray(data.data)) return data.data;
+    if (Array.isArray(data.quiz?.questions)) return data.quiz.questions;
+    if (Array.isArray(data.quizQuestions)) return data.quizQuestions;
+
+    return [];
+  };
+
+  const normalizeQuestionOptions = (question) => {
+    // Case 1: backend sends options as an array.
+    // Example:
+    // options: ["Delhi", "Mumbai", "Kolkata", "Chennai"]
+    // OR
+    // options: [{ id: "a", text: "Delhi" }]
+    if (Array.isArray(question.options)) {
+      return question.options.map((option, optionIndex) => {
+        if (typeof option === "string") {
+          return {
+            id: String(optionIndex),
+            text: option,
+          };
+        }
+
+        return {
+          id: String(
+            option.id ??
+              option._id ??
+              option.optionId ??
+              option.key ??
+              optionIndex,
+          ),
+          text: String(
+            option.text ??
+              option.label ??
+              option.value ??
+              option.option ??
+              option.answer ??
+              "",
+          ),
+        };
+      });
+    }
+
+    // Case 2: backend sends options as separate fields.
+    // Example:
+    // optionA, optionB, optionC, optionD
+    const possibleOptionFields = [
+      question.optionA,
+      question.optionB,
+      question.optionC,
+      question.optionD,
+    ];
+
+    return possibleOptionFields
+      .filter((option) => option !== undefined && option !== null)
+      .map((option, optionIndex) => ({
+        id: String(optionIndex),
+        text: String(option),
+      }));
+  };
+
+  const resolveCorrectOptionId = (question, normalizedOptions) => {
+    // This supports different backend field names for correct answer.
+    const rawCorrectAnswer =
+      question.correctOptionId ??
+      question.correctOptionIndex ??
+      question.correctOption ??
+      question.correctAnswerIndex ??
+      question.correctAnswerId ??
+      question.correctAnswer ??
+      question.answer ??
+      question.answerId ??
+      null;
+
+    if (rawCorrectAnswer === null || rawCorrectAnswer === undefined) {
+      return null;
+    }
+
+    const correctAnswerString = String(rawCorrectAnswer);
+
+    // Case 1: backend correct answer is already option id.
+    const optionMatchedById = normalizedOptions.find((option) => {
+      return String(option.id) === correctAnswerString;
+    });
+
+    if (optionMatchedById) {
+      return optionMatchedById.id;
+    }
+
+    // Case 2: backend correct answer is option text.
+    const optionMatchedByText = normalizedOptions.find((option) => {
+      return (
+        option.text.trim().toLowerCase() ===
+        correctAnswerString.trim().toLowerCase()
+      );
+    });
+
+    if (optionMatchedByText) {
+      return optionMatchedByText.id;
+    }
+
+    // Case 3: backend correct answer is numeric index.
+    // Example: correctAnswer: 0 or correctAnswer: 1
+    const numericIndex = Number(rawCorrectAnswer);
+
+    if (Number.isInteger(numericIndex)) {
+      if (normalizedOptions[numericIndex]) {
+        return normalizedOptions[numericIndex].id;
+      }
+
+      if (normalizedOptions[numericIndex - 1]) {
+        return normalizedOptions[numericIndex - 1].id;
+      }
+    }
+
+    return correctAnswerString;
+  };
+
+  const normalizeBackendQuestions = (questions) => {
+    return questions.map((question, questionIndex) => {
+      const normalizedOptions = normalizeQuestionOptions(question);
+
+      return {
+        id: String(question._id ?? question.id ?? questionIndex + 1),
+        question: String(
+          question.question ??
+            question.questionText ??
+            question.title ??
+            question.name ??
+            "",
+        ),
+        options: normalizedOptions,
+        correctOptionId: resolveCorrectOptionId(question, normalizedOptions),
+      };
+    });
+  };
+
+  const fetchQuestionsFromBackend = async (questionCount) => {
+    // First try your quiz-attempt route.
+    // This is useful if backend creates an attemptId.
+    try {
       const response = await fetch(`${API_URL}/api/quiz-attempts`, {
         method: "POST",
-
-        // Indicates that the request body contains JSON.
         headers: {
           "Content-Type": "application/json",
         },
-
-        // JSON.stringify converts a JavaScript object
-        // into JSON before sending it to the backend.
         body: JSON.stringify({
           category: "general-knowledge",
           questionCount,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Unable to start the quiz.");
+      if (response.ok) {
+        const data = await response.json();
+        const questions = extractQuestionsFromResponse(data);
+
+        if (questions.length > 0) {
+          return {
+            attemptId: data.attemptId ?? data.attempt?._id ?? data._id ?? null,
+            questions,
+          };
+        }
+      }
+    } catch (requestError) {
+      console.warn("POST /api/quiz-attempts failed:", requestError.message);
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/questions?limit=${questionCount}`,
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not fetch questions from backend.");
+    }
+
+    const data = await response.json();
+    const questions = extractQuestionsFromResponse(data);
+
+    return {
+      attemptId: data.attemptId ?? null,
+      questions,
+    };
+  };
+
+  const startGKQuiz = async (questionCount) => {
+    try {
+      setIsStartingQuiz(true);
+      setError("");
+
+      const backendData = await fetchQuestionsFromBackend(questionCount);
+
+      const normalizedQuestions = normalizeBackendQuestions(
+        backendData.questions,
+      ).slice(0, questionCount);
+
+      if (normalizedQuestions.length === 0) {
+        throw new Error("No questions found in database.");
       }
 
-      const data = await response.json();
-
-      setAttemptId(data.attemptId);
-      setQuizQuestions(data.questions || []);
+      setAttemptId(backendData.attemptId);
+      setQuizQuestions(normalizedQuestions);
       setSelectedQuestionCount(questionCount);
-
-      // Reset all values from any previous quiz attempt.
       setCurrentQuestionIndex(0);
       setSelectedAnswers({});
       setQuizResult(null);
-
       setQuizStage("quiz");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (requestError) {
-      setError(requestError.message);
+      console.error(requestError);
+
+      setError(
+        "Questions could not be loaded from database. Check backend route, MongoDB data, and console.",
+      );
     } finally {
-      setIsLoading(false);
+      setIsStartingQuiz(false);
     }
   };
 
-  /**
-   * Saves the selected option ID for a particular question.
-   *
-   * @param {number|string} questionId
-   * Database ID of the question.
-   *
-   * @param {number|string} optionId
-   * Database ID of the selected option.
-   */
+  const startQuizByCode = async () => {
+    const cleanedCode = quizCode.trim();
+
+    if (!cleanedCode) {
+      setError("Please enter a quiz code.");
+      return;
+    }
+
+    try {
+      setIsStartingQuiz(true);
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/quizzes/code/${encodeURIComponent(cleanedCode)}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Quiz code not found.");
+      }
+
+      const data = await response.json();
+      const questions = extractQuestionsFromResponse(data);
+      const normalizedQuestions = normalizeBackendQuestions(questions);
+
+      if (normalizedQuestions.length === 0) {
+        throw new Error("This quiz has no questions.");
+      }
+
+      setAttemptId(data.attemptId ?? data.quiz?._id ?? null);
+      setQuizQuestions(normalizedQuestions);
+      setSelectedQuestionCount(normalizedQuestions.length);
+      setCurrentQuestionIndex(0);
+      setSelectedAnswers({});
+      setQuizResult(null);
+      setQuizStage("quiz");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (requestError) {
+      console.error(requestError);
+      setError("Quiz code feature is not connected yet or code is invalid.");
+    } finally {
+      setIsStartingQuiz(false);
+    }
+  };
+
   const handleAnswerSelection = (questionId, optionId) => {
     setSelectedAnswers((previousAnswers) => ({
       ...previousAnswers,
-      [questionId]: optionId,
+      [String(questionId)]: String(optionId),
     }));
   };
 
   const goToPreviousQuestion = () => {
-    setCurrentQuestionIndex((previousIndex) => Math.max(previousIndex - 1, 0));
+    setCurrentQuestionIndex((previousIndex) => {
+      return Math.max(previousIndex - 1, 0);
+    });
   };
 
   const goToNextQuestion = () => {
-    setCurrentQuestionIndex((previousIndex) =>
-      Math.min(previousIndex + 1, quizQuestions.length - 1),
-    );
+    setCurrentQuestionIndex((previousIndex) => {
+      return Math.min(previousIndex + 1, quizQuestions.length - 1);
+    });
   };
 
-  /**
-   * Directly opens a question using its array index.
-   *
-   * @param {number} index
-   * Position of the selected question in quizQuestions.
-   */
   const goToQuestion = (index) => {
     setCurrentQuestionIndex(index);
   };
 
-  /**
-   * Sends all selected answers to the backend.
-   * The backend checks each answer using the database.
-   */
+  const calculateLocalResult = () => {
+    let score = 0;
+
+    const results = quizQuestions.map((question) => {
+      const selectedOptionId = selectedAnswers[String(question.id)];
+
+      const selectedOption = question.options.find((option) => {
+        return String(option.id) === String(selectedOptionId);
+      });
+
+      const correctOption = question.options.find((option) => {
+        return String(option.id) === String(question.correctOptionId);
+      });
+
+      const isCorrect =
+        selectedOptionId !== undefined &&
+        String(selectedOptionId) === String(question.correctOptionId);
+
+      if (isCorrect) {
+        score += 1;
+      }
+
+      return {
+        questionId: String(question.id),
+        isCorrect,
+        selectedAnswer: selectedOption?.text || "Not answered",
+        correctAnswer: correctOption?.text || "Not available",
+      };
+    });
+
+    const totalQuestions = quizQuestions.length;
+
+    return {
+      score,
+      totalQuestions,
+      percentage:
+        totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0,
+      results,
+    };
+  };
+
   const submitQuiz = async () => {
     try {
       setIsSubmitting(true);
       setError("");
 
-      // Converts the selectedAnswers object into the array format
-      // expected by the backend.
-      const answers = Object.entries(selectedAnswers).map(
-        ([questionId, optionId]) => ({
-          questionId: Number(questionId),
-          optionId,
-        }),
-      );
+      // If backend gave an attemptId, submit answers to backend.
+      if (attemptId) {
+        const answers = Object.entries(selectedAnswers).map(
+          ([questionId, optionId]) => ({
+            questionId,
+            optionId,
+          }),
+        );
 
-      const response = await fetch(
-        `${API_URL}/api/quiz-attempts/${attemptId}/submit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${API_URL}/api/quiz-attempts/${attemptId}/submit`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ answers }),
           },
-          body: JSON.stringify({ answers }),
-        },
-      );
+        );
 
-      if (!response.ok) {
-        throw new Error("Unable to submit the quiz.");
+        if (response.ok) {
+          const resultData = await response.json();
+
+          setQuizResult(resultData);
+          setQuizStage("result");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
       }
 
-      const resultData = await response.json();
+      // If you are using simple GET /api/questions route,
+      // frontend calculates result using correct answer received from DB.
+      const localResult = calculateLocalResult();
 
-      setQuizResult(resultData);
+      setQuizResult(localResult);
       setQuizStage("result");
-
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (requestError) {
-      setError(requestError.message);
+      console.error(requestError);
+
+      const localResult = calculateLocalResult();
+
+      setQuizResult(localResult);
+      setQuizStage("result");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const restartQuiz = () => {
-    startQuiz(selectedQuestionCount);
+    if (selectedQuestionCount) {
+      startGKQuiz(selectedQuestionCount);
+    }
   };
 
   const returnToQuizSelection = () => {
-    setQuizStage("selection");
-    setAttemptId(null);
-    setQuizQuestions([]);
-    setSelectedAnswers({});
-    setQuizResult(null);
-    setCurrentQuestionIndex(0);
-    setSelectedQuestionCount(null);
-    setError("");
+    resetQuizState();
+    setPageMode("gk");
   };
 
-  if (isLoading) {
+  if (quizStage === "selection" && pageMode === "menu") {
     return (
       <main className="take-quiz-page">
-        <div className="quiz-status-card">
-          <h2>Loading quiz...</h2>
-        </div>
+        <section className="quiz-selection">
+          <div className="quiz-heading">
+            <span className="quiz-label">TAKE QUIZ</span>
+
+            <h1>Choose how you want to take the quiz</h1>
+
+            <p>
+              You can enter a quiz code or practice a general knowledge quiz.
+            </p>
+          </div>
+
+          <div className="quiz-option-grid">
+            <button className="quiz-option-card" onClick={goToCodeSelection}>
+              <span className="quiz-option-number">#</span>
+
+              <span className="quiz-option-content">
+                <strong>Enter Quiz Code</strong>
+                <small>Join a quiz shared by a creator.</small>
+              </span>
+
+              <span className="quiz-option-arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+
+            <button className="quiz-option-card" onClick={goToGKSelection}>
+              <span className="quiz-option-number">GK</span>
+
+              <span className="quiz-option-content">
+                <strong>Take GK Quiz</strong>
+                <small>Practice general knowledge questions.</small>
+              </span>
+
+              <span className="quiz-option-arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+          </div>
+        </section>
       </main>
     );
   }
 
-  if (quizStage === "selection" && quizOptions.length === 0) {
+  if (quizStage === "selection" && pageMode === "code") {
     return (
       <main className="take-quiz-page">
-        <div className="quiz-status-card">
-          <h2>No quiz options available</h2>
+        <section className="quiz-selection">
+          <div className="quiz-heading">
+            <span className="quiz-label">QUIZ CODE</span>
 
-          <p>{error || "Quiz options have not been configured yet."}</p>
-        </div>
+            <h1>Enter quiz code</h1>
+
+            <p>Use the code given by the quiz creator.</p>
+
+            {error && <p className="quiz-error-message">{error}</p>}
+          </div>
+
+          <div className="quiz-status-card">
+            <input
+              type="text"
+              value={quizCode}
+              placeholder="Enter code"
+              onChange={(event) => {
+                setQuizCode(event.target.value);
+                setError("");
+              }}
+            />
+
+            <button
+              className="primary-button"
+              onClick={startQuizByCode}
+              disabled={isStartingQuiz}
+            >
+              {isStartingQuiz ? "Starting..." : "Start quiz"}
+            </button>
+
+            <button className="secondary-button" onClick={goBackToMainMenu}>
+              ← Back
+            </button>
+          </div>
+        </section>
       </main>
     );
   }
 
-  // -------------------------------------------------------
-  // Quiz-length selection screen
-  // -------------------------------------------------------
-  if (quizStage === "selection") {
+  if (quizStage === "selection" && pageMode === "gk") {
     return (
       <main className="take-quiz-page">
         <section className="quiz-selection">
@@ -256,6 +621,8 @@ function TakeQuiz() {
 
             <p>Select the number of questions you would like to answer.</p>
 
+            {isLoadingOptions && <p>Loading quiz options...</p>}
+
             {error && <p className="quiz-error-message">{error}</p>}
           </div>
 
@@ -264,7 +631,8 @@ function TakeQuiz() {
               <button
                 key={option.id}
                 className="quiz-option-card"
-                onClick={() => startQuiz(option.questionCount)}
+                onClick={() => startGKQuiz(option.questionCount)}
+                disabled={isStartingQuiz}
               >
                 <span className="quiz-option-number">
                   {option.questionCount}
@@ -281,25 +649,18 @@ function TakeQuiz() {
               </button>
             ))}
           </div>
+
+          <button className="secondary-button" onClick={goBackToMainMenu}>
+            ← Back
+          </button>
         </section>
       </main>
     );
   }
 
-  const currentQuestion = quizQuestions[currentQuestionIndex];
-
-  // -------------------------------------------------------
-  // Quiz-question screen
-  // -------------------------------------------------------
   if (quizStage === "quiz" && currentQuestion) {
     const isFirstQuestion = currentQuestionIndex === 0;
-
     const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
-
-    const answeredQuestionCount = Object.keys(selectedAnswers).length;
-
-    const unansweredQuestionCount =
-      quizQuestions.length - answeredQuestionCount;
 
     return (
       <main className="take-quiz-page">
@@ -337,7 +698,8 @@ function TakeQuiz() {
 
               <div className="question-number-grid">
                 {quizQuestions.map((question, index) => {
-                  const isAnswered = selectedAnswers[question.id] !== undefined;
+                  const isAnswered =
+                    selectedAnswers[String(question.id)] !== undefined;
 
                   const isCurrent = index === currentQuestionIndex;
 
@@ -360,84 +722,25 @@ function TakeQuiz() {
               </div>
             </aside>
 
-            <article className="question-card">
-              <span className="question-count">
-                Question {currentQuestionIndex + 1}
-              </span>
-
-              <h2>{currentQuestion.question}</h2>
-
-              <div className="question-options">
-                {currentQuestion.options.map((option, optionIndex) => {
-                  const isSelected =
-                    selectedAnswers[currentQuestion.id] === option.id;
-
-                  return (
-                    <label
-                      key={option.id}
-                      className={`answer-option ${
-                        isSelected ? "selected" : ""
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={`question-${currentQuestion.id}`}
-                        checked={isSelected}
-                        onChange={() =>
-                          handleAnswerSelection(currentQuestion.id, option.id)
-                        }
-                      />
-
-                      <span className="option-letter">
-                        {String.fromCharCode(65 + optionIndex)}
-                      </span>
-
-                      <span className="option-text">{option.text}</span>
-                    </label>
-                  );
-                })}
-              </div>
-
-              <footer className="question-actions">
-                <button
-                  className="secondary-button"
-                  onClick={goToPreviousQuestion}
-                  disabled={isFirstQuestion}
-                >
-                  ← Previous
-                </button>
-
-                {!isLastQuestion ? (
-                  <button className="primary-button" onClick={goToNextQuestion}>
-                    Next →
-                  </button>
-                ) : (
-                  <button
-                    className="submit-button"
-                    onClick={submitQuiz}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Submitting..." : "Submit quiz"}
-                  </button>
-                )}
-              </footer>
-
-              {isLastQuestion && unansweredQuestionCount > 0 && (
-                <p className="unanswered-message">
-                  You still have {unansweredQuestionCount} unanswered{" "}
-                  {unansweredQuestionCount === 1 ? "question" : "questions"}.
-                </p>
-              )}
-            </article>
+            <QuizCard
+              currentQuestion={currentQuestion}
+              currentQuestionIndex={currentQuestionIndex}
+              selectedAnswers={selectedAnswers}
+              unansweredQuestionCount={unansweredQuestionCount}
+              isFirstQuestion={isFirstQuestion}
+              isLastQuestion={isLastQuestion}
+              isSubmitting={isSubmitting}
+              onAnswerSelection={handleAnswerSelection}
+              onPreviousQuestion={goToPreviousQuestion}
+              onNextQuestion={goToNextQuestion}
+              onSubmitQuiz={submitQuiz}
+            />
           </div>
         </section>
       </main>
     );
   }
 
-  // -------------------------------------------------------
-  // Final result screen
-  // -------------------------------------------------------
   if (quizStage === "result" && quizResult) {
     return (
       <main className="take-quiz-page">
@@ -466,6 +769,10 @@ function TakeQuiz() {
               >
                 Change quiz length
               </button>
+
+              <button className="secondary-button" onClick={goBackToMainMenu}>
+                Back to quiz menu
+              </button>
             </div>
           </div>
 
@@ -477,9 +784,9 @@ function TakeQuiz() {
             </div>
 
             {quizResult.results.map((result, index) => {
-              const question = quizQuestions.find(
-                (item) => item.id === result.questionId,
-              );
+              const question = quizQuestions.find((item) => {
+                return String(item.id) === String(result.questionId);
+              });
 
               return (
                 <article
@@ -518,7 +825,17 @@ function TakeQuiz() {
     );
   }
 
-  return null;
+  return (
+    <main className="take-quiz-page">
+      <div className="quiz-status-card">
+        <h2>Something went wrong</h2>
+
+        <button className="primary-button" onClick={goBackToMainMenu}>
+          Back to quiz menu
+        </button>
+      </div>
+    </main>
+  );
 }
 
 export default TakeQuiz;
