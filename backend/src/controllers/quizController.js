@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Question from "../Models//Question.js";
+import Question from "../models/Question.js";
 
 const asyncHandler = (controllerFunction) => {
   return (req, res, next) => {

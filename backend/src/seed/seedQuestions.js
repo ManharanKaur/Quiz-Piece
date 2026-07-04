@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import Question from "../Models/Question.js";
+import Question from "../models/Question.js";
 import connectDB from "../config/db.js";
 
 dotenv.config();
