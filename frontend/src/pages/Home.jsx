@@ -4,37 +4,50 @@ import "../styles/Home.css";
 function Home() {
   return (
     <main className="home-page">
+      {/* Profile Button */}
       <Link to="/profile" className="profile-link" aria-label="Open profile">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="28"
-          height="28"
+          width="34"
+          height="34"
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
+          fill="currentColor"
         >
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
+          <path d="M12 12c2.76 0 5-2.24 5-5S14.76 2 12 2 7 4.24 7 7s2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z" />
         </svg>
       </Link>
 
       <section className="home-content">
-        <h1>Quiz Piece</h1>
+        {/* Left Side */}
+        <div className="left-side">
+          <h1 className="hero-title">
+            <span className="q-wrap">
+              <img src="./images/straw-hat.png" alt="" className="straw-hat" />
+            </span>
+            QUIZ
+            <span>PIECE.</span>
+          </h1>
 
-        <p>Welcome to your quiz platform.</p>
+          <div className="home-actions">
+            <button type="button">➕ CREATE QUIZ</button>
 
-        <div className="home-actions">
-          <button className="hidden" type="button">
-            Create Quiz
-          </button>
+            <Link to="/take-quiz" className="home-actions-link">
+              ▶ TAKE QUIZ
+            </Link>
+          </div>
+        </div>
 
-          <Link to="/take-quiz" className="home-actions-link">
-            Take Quiz
-          </Link>
+        {/* Right Side */}
+        <div className="right-side">
+          <p>
+            Create powerful quizzes in seconds.
+            <br />
+            <br />
+            Challenge yourself and others across any topic.
+            <br />
+            <br />
+            Learn, compete, and grow every day.
+          </p>
         </div>
       </section>
     </main>

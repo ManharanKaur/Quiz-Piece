@@ -1,11 +1,46 @@
+/* ==========================================
+   QUESTION CARD
+========================================== */
+
 .question-card {
   min-height: 500px;
   padding: clamp(24px, 5vw, 46px);
+
   background: var(--quiz-card);
   border: 1px solid var(--quiz-border);
   border-radius: 24px;
+
   box-shadow: 0 18px 50px rgba(32, 43, 88, 0.07);
+
+  /* Floating animation */
+  animation:
+    cardEnter 0.8s ease-out,
+    questionCardFloat 4s ease-in-out 0.8s infinite;
+  will-change: transform;
 }
+
+@keyframes questionCardFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  25% {
+    transform: translateY(-4px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  75% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ==========================================
+   QUESTION HEADER
+========================================== */
 
 .question-count {
   color: var(--quiz-primary);
@@ -18,10 +53,16 @@
 .question-card h2 {
   max-width: 800px;
   margin: 14px 0 30px;
+
   font-size: clamp(1.35rem, 3vw, 2rem);
   line-height: 1.4;
-  color: #17203b;
+
+  color: #fffff4;
 }
+
+/* ==========================================
+   OPTIONS
+========================================== */
 
 .question-options {
   display: flex;
@@ -33,43 +74,60 @@
   display: flex;
   align-items: center;
   gap: 15px;
+
   padding: 17px 18px;
-  background: #fbfbfd;
-  border: 2px solid var(--quiz-border);
+
+  background: var(--quiz-primary-light);
+  border: 2px solid var(--quiz-primary);
   border-radius: 16px;
+
   cursor: pointer;
+
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .answer-option:hover {
   transform: translateX(3px);
-  border-color: #bdb4ff;
+  border-color: var(--quiz-gold);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .answer-option.selected {
-  background: var(--quiz-primary-light);
-  border-color: var(--quiz-primary);
+  background: var(--quiz-gold);
+  border-color: var(--quiz-gold-dark);
+  color: black;
 }
 
 .answer-option input {
   position: absolute;
+
   width: 1px;
   height: 1px;
+
   opacity: 0;
   pointer-events: none;
 }
 
+/* ==========================================
+   OPTION LETTER
+========================================== */
+
 .option-letter {
   display: grid;
+  place-items: center;
+
   width: 38px;
   height: 38px;
+
   flex-shrink: 0;
-  place-items: center;
+
   color: var(--quiz-primary);
   font-weight: 800;
+
   background: #ffffff;
   border: 1px solid var(--quiz-border);
   border-radius: 11px;
@@ -81,26 +139,47 @@
   border-color: var(--quiz-primary);
 }
 
+/* ==========================================
+   OPTION TEXT
+========================================== */
+
 .option-text {
   font-weight: 600;
   line-height: 1.5;
 }
 
+/* ==========================================
+   ACTION BUTTONS
+========================================== */
+
 .question-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 14px;
+
   margin-top: 34px;
 }
 
+/* ==========================================
+   WARNING
+========================================== */
+
 .unanswered-message {
   margin: 18px 0 0;
+
   color: #b37016;
+
   font-size: 0.88rem;
   line-height: 1.5;
+
   text-align: right;
 }
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
 
 @media (max-width: 680px) {
   .question-card {

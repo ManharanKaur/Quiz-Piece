@@ -1,41 +1,164 @@
-/* Makes width and height calculations more predictable for every element. */
-* {
+/* =========================================
+   GLOBAL RESET
+========================================= */
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* Removes the browser's default page spacing. */
 html,
 body {
   margin: 0;
+  padding: 0;
   min-width: 320px;
   min-height: 100%;
 }
 
 body {
   min-height: 100vh;
-  font-family: Inter, Arial, Helvetica, sans-serif;
-  background-color: #f5f7ff;
-  color: #1f2937;
-}
 
-button,
-input {
-  font: inherit;
-}
+  font-family: "Inter", Arial, Helvetica, sans-serif;
 
-button {
-  cursor: pointer;
-}
+  background: #000;
+  color: #f5f5f5;
 
-a {
-  color: inherit;
+  overflow-x: hidden;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-height: 100vh;
+  background: #000;
 }
 
-/* Used for features that should not appear yet. */
+/* =========================================
+   TYPOGRAPHY
+========================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+
+  /* Your theme color */
+  color: #d32f2f;
+}
+
+/* =========================================
+   LINKS
+========================================= */
+
+a {
+  color: #d32f2f;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+a:hover {
+  color: #ff3b3b;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+/*
+  Buttons are intentionally neutral.
+
+  Every page (Home, Login, Dashboard, etc.)
+  should style its own buttons.
+*/
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+/* =========================================
+   FORM ELEMENTS
+========================================= */
+
+input,
+textarea,
+select {
+  font: inherit;
+
+  width: 100%;
+
+  background: #111;
+  color: #fff;
+
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+
+  padding: 12px 16px;
+
+  outline: none;
+
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #c1121f;
+
+  box-shadow: 0 0 0 3px rgba(193, 18, 31, 0.18);
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090909;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #8b0000;
+  border-radius: 50px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c1121f;
+}
+
+/* =========================================
+   UTILITIES
+========================================= */
+
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+svg {
+  display: block;
 }
