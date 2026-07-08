@@ -4,7 +4,8 @@ import "../styles/TakeQuiz.css";
 
 // This uses your deployed backend if VITE_API_BASE_URL exists.
 // Otherwise it uses your local backend.
-const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const API_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 // These are only UI options.
 // Questions are NOT stored here.
@@ -62,7 +63,7 @@ function TakeQuiz() {
       try {
         setIsLoadingOptions(true);
 
-        const response = await fetch(`${API_URL}/api/quiz-options`);
+        const response = await fetch(`${API_URL}/quiz-options`);
 
         if (!response.ok) {
           throw new Error("Quiz options route not found.");
@@ -269,7 +270,7 @@ function TakeQuiz() {
     // First try your quiz-attempt route.
     // This is useful if backend creates an attemptId.
     try {
-      const response = await fetch(`${API_URL}/api/quiz-attempts`, {
+      const response = await fetch(`${API_URL}/quiz-attempts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -292,12 +293,10 @@ function TakeQuiz() {
         }
       }
     } catch (requestError) {
-      console.warn("POST /api/quiz-attempts failed:", requestError.message);
+      console.warn("POST /quiz-attempts failed:", requestError.message);
     }
 
-    const response = await fetch(
-      `${API_URL}/api/questions?limit=${questionCount}`,
-    );
+    const response = await fetch(`${API_URL}/questions?limit=${questionCount}`);
 
     if (!response.ok) {
       throw new Error("Could not fetch questions from backend.");
@@ -360,7 +359,7 @@ function TakeQuiz() {
       setError("");
 
       const response = await fetch(
-        `${API_URL}/api/quizzes/code/${encodeURIComponent(cleanedCode)}`,
+        `${API_URL}/quizzes/code/${encodeURIComponent(cleanedCode)}`,
       );
 
       if (!response.ok) {
@@ -471,7 +470,7 @@ function TakeQuiz() {
         );
 
         const response = await fetch(
-          `${API_URL}/api/quiz-attempts/${attemptId}/submit`,
+          `${API_URL}/quiz-attempts/${attemptId}/submit`,
           {
             method: "POST",
             headers: {
@@ -491,7 +490,7 @@ function TakeQuiz() {
         }
       }
 
-      // If you are using simple GET /api/questions route,
+      // If you are using simple GET /questions route,
       // frontend calculates result using correct answer received from DB.
       const localResult = calculateLocalResult();
 
