@@ -438,16 +438,270 @@ const animeQuestions = [
   },
 ];
 
+const sportsQuestions = [
+  {
+    question: "How many players are on a standard soccer team on the field?",
+    options: [{ text: "9" }, { text: "10" }, { text: "11" }, { text: "12" }],
+    correctOptionIndex: 2,
+    category: "sports",
+    difficulty: "easy",
+    explanation: "A standard soccer team has 11 players on the field.",
+  },
+  {
+    question: "In tennis, what is a score of zero called?",
+    options: [{ text: "Nil" }, { text: "Zero" }, { text: "Love" }, { text: "Nothing" }],
+    correctOptionIndex: 2,
+    category: "sports",
+    difficulty: "easy",
+    explanation: "In tennis, zero is called 'Love'.",
+  },
+  {
+    question: "How long is a marathon?",
+    options: [{ text: "13.1 miles" }, { text: "26.2 miles" }, { text: "20 miles" }, { text: "100 km" }],
+    correctOptionIndex: 1,
+    category: "sports",
+    difficulty: "medium",
+    explanation: "A marathon is exactly 26.2 miles long.",
+  },
+  {
+    question: "Which sport is known as the 'gentleman's game'?",
+    options: [{ text: "Golf" }, { text: "Cricket" }, { text: "Tennis" }, { text: "Polo" }],
+    correctOptionIndex: 1,
+    category: "sports",
+    difficulty: "medium",
+    explanation: "Cricket is traditionally known as the gentleman's game.",
+  },
+  {
+    question: "How many rings are there on the Olympic flag?",
+    options: [{ text: "4" }, { text: "5" }, { text: "6" }, { text: "7" }],
+    correctOptionIndex: 1,
+    category: "sports",
+    difficulty: "easy",
+    explanation: "The Olympic flag has 5 rings.",
+  },
+  {
+    question: "In which sport would you perform a slam dunk?",
+    options: [{ text: "Volleyball" }, { text: "Basketball" }, { text: "Tennis" }, { text: "Rugby" }],
+    correctOptionIndex: 1,
+    category: "sports",
+    difficulty: "easy",
+    explanation: "A slam dunk is a scoring move in basketball.",
+  },
+  {
+    question: "What is the national sport of Canada?",
+    options: [{ text: "Ice Hockey" }, { text: "Lacrosse" }, { text: "Both Ice Hockey and Lacrosse" }, { text: "Curling" }],
+    correctOptionIndex: 2,
+    category: "sports",
+    difficulty: "medium",
+    explanation: "Canada has two national sports: Ice Hockey (winter) and Lacrosse (summer).",
+  },
+  {
+    question: "Who holds the record for the most Olympic gold medals?",
+    options: [{ text: "Usain Bolt" }, { text: "Michael Phelps" }, { text: "Carl Lewis" }, { text: "Mark Spitz" }],
+    correctOptionIndex: 1,
+    category: "sports",
+    difficulty: "medium",
+    explanation: "Michael Phelps holds the record with 23 gold medals.",
+  },
+  {
+    question: "In baseball, how many strikes make an out?",
+    options: [{ text: "2" }, { text: "3" }, { text: "4" }, { text: "5" }],
+    correctOptionIndex: 1,
+    category: "sports",
+    difficulty: "easy",
+    explanation: "Three strikes make an out.",
+  },
+  {
+    question: "What sport uses a shuttlecock?",
+    options: [{ text: "Table Tennis" }, { text: "Squash" }, { text: "Badminton" }, { text: "Tennis" }],
+    correctOptionIndex: 2,
+    category: "sports",
+    difficulty: "easy",
+    explanation: "Badminton is played with a shuttlecock.",
+  }
+];
+
+const geographyQuestions = [
+  {
+    question: "What is the capital of France?",
+    options: [{ text: "Berlin" }, { text: "Madrid" }, { text: "Rome" }, { text: "Paris" }],
+    correctOptionIndex: 3,
+    category: "geography",
+    difficulty: "easy",
+    explanation: "Paris is the capital of France.",
+  },
+  {
+    question: "Which is the largest ocean on Earth?",
+    options: [{ text: "Atlantic Ocean" }, { text: "Indian Ocean" }, { text: "Pacific Ocean" }, { text: "Arctic Ocean" }],
+    correctOptionIndex: 2,
+    category: "geography",
+    difficulty: "easy",
+    explanation: "The Pacific Ocean is the largest ocean.",
+  },
+  {
+    question: "What is the longest river in the world?",
+    options: [{ text: "Amazon River" }, { text: "Nile River" }, { text: "Yangtze River" }, { text: "Mississippi River" }],
+    correctOptionIndex: 1,
+    category: "geography",
+    difficulty: "medium",
+    explanation: "The Nile River is traditionally considered the longest.",
+  },
+  {
+    question: "Which country has the largest land area?",
+    options: [{ text: "Canada" }, { text: "China" }, { text: "United States" }, { text: "Russia" }],
+    correctOptionIndex: 3,
+    category: "geography",
+    difficulty: "easy",
+    explanation: "Russia is the largest country by land area.",
+  },
+  {
+    question: "Mount Everest is located in which mountain range?",
+    options: [{ text: "Andes" }, { text: "Alps" }, { text: "Himalayas" }, { text: "Rockies" }],
+    correctOptionIndex: 2,
+    category: "geography",
+    difficulty: "easy",
+    explanation: "Mount Everest is in the Himalayas.",
+  },
+  {
+    question: "What is the smallest country in the world?",
+    options: [{ text: "Monaco" }, { text: "Vatican City" }, { text: "San Marino" }, { text: "Liechtenstein" }],
+    correctOptionIndex: 1,
+    category: "geography",
+    difficulty: "medium",
+    explanation: "Vatican City is the smallest country.",
+  },
+  {
+    question: "Which desert is the largest hot desert in the world?",
+    options: [{ text: "Gobi" }, { text: "Kalahari" }, { text: "Sahara" }, { text: "Mojave" }],
+    correctOptionIndex: 2,
+    category: "geography",
+    difficulty: "easy",
+    explanation: "The Sahara is the largest hot desert.",
+  },
+  {
+    question: "What is the capital of Japan?",
+    options: [{ text: "Kyoto" }, { text: "Osaka" }, { text: "Tokyo" }, { text: "Seoul" }],
+    correctOptionIndex: 2,
+    category: "geography",
+    difficulty: "easy",
+    explanation: "Tokyo is the capital of Japan.",
+  },
+  {
+    question: "How many continents are there?",
+    options: [{ text: "5" }, { text: "6" }, { text: "7" }, { text: "8" }],
+    correctOptionIndex: 2,
+    category: "geography",
+    difficulty: "easy",
+    explanation: "There are 7 continents.",
+  },
+  {
+    question: "Which river flows through London?",
+    options: [{ text: "Seine" }, { text: "Rhine" }, { text: "Danube" }, { text: "Thames" }],
+    correctOptionIndex: 3,
+    category: "geography",
+    difficulty: "medium",
+    explanation: "The Thames River flows through London.",
+  }
+];
+
+const generalKnowledgeQuestions = [
+  {
+    question: "What is the chemical symbol for water?",
+    options: [{ text: "O2" }, { text: "H2O" }, { text: "CO2" }, { text: "NaCl" }],
+    correctOptionIndex: 1,
+    category: "general-knowledge",
+    difficulty: "easy",
+    explanation: "H2O is the chemical symbol for water.",
+  },
+  {
+    question: "Who wrote 'Romeo and Juliet'?",
+    options: [{ text: "Charles Dickens" }, { text: "William Shakespeare" }, { text: "Mark Twain" }, { text: "Jane Austen" }],
+    correctOptionIndex: 1,
+    category: "general-knowledge",
+    difficulty: "easy",
+    explanation: "William Shakespeare wrote 'Romeo and Juliet'.",
+  },
+  {
+    question: "What is the freezing point of water in Celsius?",
+    options: [{ text: "0°C" }, { text: "32°C" }, { text: "100°C" }, { text: "-10°C" }],
+    correctOptionIndex: 0,
+    category: "general-knowledge",
+    difficulty: "easy",
+    explanation: "Water freezes at 0 degrees Celsius.",
+  },
+  {
+    question: "How many planets are in our solar system?",
+    options: [{ text: "7" }, { text: "8" }, { text: "9" }, { text: "10" }],
+    correctOptionIndex: 1,
+    category: "general-knowledge",
+    difficulty: "easy",
+    explanation: "There are 8 planets in our solar system.",
+  },
+  {
+    question: "Who painted the Mona Lisa?",
+    options: [{ text: "Vincent van Gogh" }, { text: "Pablo Picasso" }, { text: "Leonardo da Vinci" }, { text: "Michelangelo" }],
+    correctOptionIndex: 2,
+    category: "general-knowledge",
+    difficulty: "easy",
+    explanation: "Leonardo da Vinci painted the Mona Lisa.",
+  },
+  {
+    question: "What is the hardest natural substance on Earth?",
+    options: [{ text: "Gold" }, { text: "Iron" }, { text: "Diamond" }, { text: "Quartz" }],
+    correctOptionIndex: 2,
+    category: "general-knowledge",
+    difficulty: "medium",
+    explanation: "Diamond is the hardest natural substance.",
+  },
+  {
+    question: "Which element has the chemical symbol 'O'?",
+    options: [{ text: "Osmium" }, { text: "Oxygen" }, { text: "Gold" }, { text: "Silver" }],
+    correctOptionIndex: 1,
+    category: "general-knowledge",
+    difficulty: "easy",
+    explanation: "Oxygen's chemical symbol is 'O'.",
+  },
+  {
+    question: "In what year did the Titanic sink?",
+    options: [{ text: "1912" }, { text: "1905" }, { text: "1920" }, { text: "1898" }],
+    correctOptionIndex: 0,
+    category: "general-knowledge",
+    difficulty: "medium",
+    explanation: "The Titanic sank in 1912.",
+  },
+  {
+    question: "What is the largest organ in the human body?",
+    options: [{ text: "Heart" }, { text: "Liver" }, { text: "Brain" }, { text: "Skin" }],
+    correctOptionIndex: 3,
+    category: "general-knowledge",
+    difficulty: "medium",
+    explanation: "The skin is the largest organ.",
+  },
+  {
+    question: "What language has the most native speakers?",
+    options: [{ text: "English" }, { text: "Spanish" }, { text: "Mandarin Chinese" }, { text: "Hindi" }],
+    correctOptionIndex: 2,
+    category: "general-knowledge",
+    difficulty: "medium",
+    explanation: "Mandarin Chinese has the most native speakers.",
+  }
+];
+
+
 const seedQuestions = async () => {
   try {
-    // Delete old anime questions before inserting fresh data.
-    // This prevents duplicate data when you run npm run seed again.
-    await Question.deleteMany({ category: "anime" });
+    // Delete old questions before inserting fresh data.
+    await Question.deleteMany({});
 
-    // Insert all anime questions into MongoDB.
-    await Question.insertMany(animeQuestions);
+    // Insert all questions into MongoDB.
+    await Question.insertMany([
+      ...animeQuestions,
+      ...sportsQuestions,
+      ...geographyQuestions,
+      ...generalKnowledgeQuestions
+    ]);
 
-    console.log("Anime questions inserted successfully");
+    console.log("Questions inserted successfully");
     process.exit();
   } catch (error) {
     console.error(`Seeding failed: ${error.message}`);

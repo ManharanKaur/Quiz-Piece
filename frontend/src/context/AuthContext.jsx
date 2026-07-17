@@ -4,7 +4,9 @@ import {
   deleteAccount,
   getCurrentUser,
   loginUser,
+  logoutUser,
   registerUser,
+  refreshAccessToken,
 } from "../services/authService";
 
 const AuthContext = createContext(null);
@@ -24,24 +26,32 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const loadUserFromToken = async () => {
       try {
-        // If there is no token, user is not logged in.
         if (!token) {
           setUser(null);
           setAuthLoading(false);
           return;
         }
 
-        // Verify token by calling protected backend route.
         const data = await getCurrentUser(token);
 
         setUser(data.user);
       } catch (error) {
-        // If token is expired/invalid, remove it.
-        console.error("Auth check failed:", error.message);
+        try {
+          const refreshedData = await refreshAccessToken();
 
-        localStorage.removeItem(TOKEN_STORAGE_KEY);
-        setToken(null);
-        setUser(null);
+          localStorage.setItem(TOKEN_STORAGE_KEY, refreshedData.token);
+          setToken(refreshedData.token);
+          setUser(refreshedData.user);
+
+          return;
+        } catch (refreshError) {
+          console.error("Auth check failed:", error.message);
+          console.error("Token refresh failed:", refreshError.message);
+
+          localStorage.removeItem(TOKEN_STORAGE_KEY);
+          setToken(null);
+          setUser(null);
+        }
       } finally {
         setAuthLoading(false);
       }
@@ -75,7 +85,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    // Remove token from browser storage.
+    logoutUser().catch((error) => {
+      console.error("Logout request failed:", error.message);
+    });
+
     localStorage.removeItem(TOKEN_STORAGE_KEY);
 
     setToken(null);

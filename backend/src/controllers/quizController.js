@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Question from "../models/Question.js";
+import CustomQuiz from "../models/CustomQuiz.js";
+import crypto from "crypto";
 
 const asyncHandler = (controllerFunction) => {
   return (req, res, next) => {
@@ -7,60 +9,21 @@ const asyncHandler = (controllerFunction) => {
   };
 };
 
-const buildQuizFilter = ({ category = "anime", franchise }) => {
+export const getQuizByCategory = asyncHandler(async (req, res) => {
+  const category = req.params.category || "anime";
+  const limit = 10;
+
   const filter = {
-    category,
+    category: category,
     isActive: true,
   };
-
-  if (franchise) {
-    filter.franchise = franchise;
-  }
-
-  return filter;
-};
-
-export const getQuizOptions = asyncHandler(async (req, res) => {
-  const category = req.query.category || "anime";
-  const franchise = req.query.franchise;
-
-  const filter = buildQuizFilter({ category, franchise });
-
-  const totalQuestions = await Question.countDocuments(filter);
-
-  const allowedCounts = [10, 20].filter((count) => totalQuestions >= count);
-
-  res.json({
-    success: true,
-    category,
-    franchise: franchise || "mixed",
-    totalQuestions,
-    allowedCounts,
-  });
-});
-
-export const getAnimeQuiz = asyncHandler(async (req, res) => {
-  const limit = Number(req.query.limit) || 10;
-  const franchise = req.query.franchise;
-
-  const allowedLimits = [10, 20];
-
-  if (!allowedLimits.includes(limit)) {
-    res.status(400);
-    throw new Error("Quiz limit must be either 10 or 20");
-  }
-
-  const filter = buildQuizFilter({
-    category: "anime",
-    franchise,
-  });
 
   const totalQuestions = await Question.countDocuments(filter);
 
   if (totalQuestions < limit) {
     res.status(400);
     throw new Error(
-      `Only ${totalQuestions} questions available. Add more questions to database.`,
+      `Only ${totalQuestions} questions available for category ${category}. Add more questions to database.`
     );
   }
 
@@ -86,8 +49,7 @@ export const getAnimeQuiz = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     quiz: {
-      category: "anime",
-      franchise: franchise || "mixed",
+      category: category,
       totalQuestions: questions.length,
       questions,
     },
@@ -170,6 +132,86 @@ export const submitQuiz = asyncHandler(async (req, res) => {
       wrongAnswers: answers.length - score,
       percentage: Math.round((score / answers.length) * 100),
       details: resultDetails,
+    },
+  });
+});
+
+const generateCode = () => {
+  return crypto.randomBytes(3).toString("hex").toUpperCase();
+};
+
+export const createCustomQuiz = asyncHandler(async (req, res) => {
+  const { title, questions, expiryHours } = req.body;
+
+  if (!questions || !Array.isArray(questions) || questions.length === 0) {
+    res.status(400);
+    throw new Error("Questions array is required");
+  }
+
+  const hours = parseFloat(expiryHours) || 1;
+  if (hours <= 0 || hours > 24) {
+    res.status(400);
+    throw new Error("Expiry hours must be between 0 and 24");
+  }
+
+  const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
+  
+  let code = generateCode();
+  let codeExists = await CustomQuiz.findOne({ code });
+  while (codeExists) {
+    code = generateCode();
+    codeExists = await CustomQuiz.findOne({ code });
+  }
+
+  const newQuiz = await CustomQuiz.create({
+    title,
+    code,
+    questions,
+    expiresAt,
+  });
+
+  res.status(201).json({
+    success: true,
+    code: newQuiz.code,
+    expiresAt: newQuiz.expiresAt,
+  });
+});
+
+export const getCustomQuizByCode = asyncHandler(async (req, res) => {
+  const { code } = req.params;
+
+  if (!code) {
+    res.status(400);
+    throw new Error("Quiz code is required");
+  }
+
+  const quiz = await CustomQuiz.findOne({ code: code.toUpperCase() });
+
+  if (!quiz) {
+    res.status(404);
+    throw new Error("Quiz not found or has expired");
+  }
+
+  if (quiz.expiresAt < new Date()) {
+    res.status(404);
+    throw new Error("This quiz has expired");
+  }
+
+  // Remove the correctOptionId from the response to prevent cheating
+  const safeQuestions = quiz.questions.map(q => {
+    const { correctOptionId, ...rest } = q.toObject();
+    return rest;
+  });
+
+  res.json({
+    success: true,
+    quiz: {
+      _id: quiz._id,
+      title: quiz.title,
+      code: quiz.code,
+      totalQuestions: safeQuestions.length,
+      questions: safeQuestions,
+      expiresAt: quiz.expiresAt,
     },
   });
 });

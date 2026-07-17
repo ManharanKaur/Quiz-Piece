@@ -1,15 +1,13 @@
 import { Navigate } from "react-router-dom";
+import { TOKEN_STORAGE_KEY } from "../services/authService";
 
 function ProtectedRoute({ children }) {
-  // Get token saved after login
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
 
-  // If token does not exist, send user to login page
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  // If token exists, show the protected page
   return children;
 }
 

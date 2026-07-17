@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import mongoose from "mongoose";
 
@@ -24,6 +25,7 @@ app.use(
 );
 
 app.use(express.json({ limit: "10kb" }));
+app.use(cookieParser());
 
 app.use(morgan("dev"));
 

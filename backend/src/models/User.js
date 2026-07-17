@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
+
+const hashToken = (token) => {
+  return crypto.createHash("sha256").update(token).digest("hex");
+};
 
 const userSchema = new mongoose.Schema(
   {
@@ -23,6 +28,16 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
+
+    refreshTokenHash: {
+      type: String,
+      select: false,
+    },
+
+    refreshTokenExpiresAt: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -43,6 +58,31 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
+};
+
+userSchema.methods.setRefreshToken = function (refreshTokenId, expiresAt) {
+  this.refreshTokenHash = hashToken(refreshTokenId);
+  this.refreshTokenExpiresAt = expiresAt;
+};
+
+userSchema.methods.clearRefreshToken = function () {
+  this.refreshTokenHash = undefined;
+  this.refreshTokenExpiresAt = undefined;
+};
+
+userSchema.methods.hasRefreshToken = function (refreshTokenId) {
+  if (!this.refreshTokenHash || !refreshTokenId) {
+    return false;
+  }
+
+  if (
+    this.refreshTokenExpiresAt &&
+    this.refreshTokenExpiresAt.getTime() < Date.now()
+  ) {
+    return false;
+  }
+
+  return this.refreshTokenHash === hashToken(refreshTokenId);
 };
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);

@@ -29,7 +29,9 @@ function Home() {
           </h1>
 
           <div className="home-actions">
-            <button type="button">➕ CREATE QUIZ</button>
+            <Link to="/create-quiz">
+              <button type="button">➕ CREATE QUIZ</button>
+            </Link>
 
             <Link to="/take-quiz" className="home-actions-link">
               ▶ TAKE QUIZ
